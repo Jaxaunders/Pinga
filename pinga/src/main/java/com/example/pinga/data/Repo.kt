@@ -15,7 +15,10 @@ data class DeviceRow(
     val mac: String,
     val rssi: Int,
     val estMeters: Double,
-    val lastSeenSec: Int
+    val lastSeenSec: Int,
+    val vendorName: String? = null,
+    val serviceNames: List<String> = emptyList(),
+    val mfgPayloadHex: String? = null
 )
 
 class Repo(ctx: Context) {

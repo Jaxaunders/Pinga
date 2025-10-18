@@ -14,6 +14,8 @@ import com.example.pinga.model.BleAdvert
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import com.example.pinga.sig.SigRegistry
+import com.example.pinga.sig.ManufacturerParser
 
 class BleScanner(private val context: Context) {
 
@@ -41,6 +43,16 @@ class BleScanner(private val context: Context) {
         val cb = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, r: ScanResult) {
                 val sr = r.scanRecord
+                val sig = SigRegistry.get(context)      //SIG lookup
+
+               // Manufacturer: resolve name + clean payload (handles duplicated LE ID bytes)
+                val mfgInfo = ManufacturerParser.parseFirst(sr?.manufacturerSpecificData) { id ->
+                    sig.companyNameOrNull(id)
+                }
+                // Services: resolve any known 16-bit/base UUID services to friendly names
+                val serviceUuids = sr?.serviceUuids?.mapNotNull { it.uuid } ?: emptyList()
+                val serviceNames = serviceUuids.mapNotNull { sig.serviceNameOrNull(it) }.distinct()
+
                 val manu = buildMap {
                     val msd = sr?.manufacturerSpecificData
                     if (msd != null && msd.size() > 0) {
@@ -63,7 +75,11 @@ class BleScanner(private val context: Context) {
                         serviceUuids = sr?.serviceUuids?.map { it.uuid.toString() } ?: emptyList(),
                         manufacturer = manu,
                         rawBytes = sr?.bytes,
-                        advertisedName = sr?.deviceName ?: r.device?.name
+                        advertisedName = sr?.deviceName ?: r.device?.name,
+                        resolvedManufacturerId = mfgInfo?.companyId,
+                        resolvedManufacturerName = mfgInfo?.companyName,
+                        resolvedManufacturerPayloadHex = mfgInfo?.payloadHex,
+                        resolvedServiceNames = serviceNames
                     )
                 )
             }

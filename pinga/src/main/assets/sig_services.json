@@ -1,0 +1,11 @@
+{
+  "1800": "Generic Access",
+  "1801": "Generic Attribute",
+  "180A": "Device Information",
+  "FD5A": "Tile",
+  "FD6F": "Google Fast Pair",
+  "FE2C": "Apple Continuity",
+  "FEAA": "Eddystone (Google Beacon)",
+  "FE9F": "Fast Identity Online (FIDO)",
+  "FD12": "Microsoft Swift Pair"
+}
