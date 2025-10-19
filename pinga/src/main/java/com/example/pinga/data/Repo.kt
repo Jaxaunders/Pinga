@@ -9,6 +9,23 @@ import com.example.pinga.wifi.WifiScanner
 import com.example.pinga.location.GpsTracker
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import com.example.pinga.sig.SigRegistry
+import java.util.UUID
+
+// UUID helper
+private fun hexId(id: Int): String =
+    "0x" + id.toString(16).uppercase().padStart(4, '0')
+
+private fun toShortUuid(s: String): String = try {
+    val u = UUID.fromString(s)
+    val base = UUID.fromString("00000000-0000-1000-8000-00805F9B34FB")
+    if (u.leastSignificantBits == base.leastSignificantBits &&
+        (u.mostSignificantBits and -0x1000000000000L) == (base.mostSignificantBits and -0x1000000000000L)) {
+        val shortVal = ((u.mostSignificantBits and 0x0000FFFF00000000L) ushr 32).toInt()
+        shortVal.toString(16).uppercase().padStart(4, '0')
+    } else s.lowercase()
+} catch (_: Exception) { s }
+
 
 data class DeviceRow(
     val title: String,
@@ -30,6 +47,8 @@ class Repo(ctx: Context) {
 
     private val latestWifi = MutableStateFlow<List<WifiNetwork>>(emptyList())
     private val latestGps  = MutableStateFlow<GpsFix?>(null)
+
+    private val sig = SigRegistry.get(ctx)
 
     private val window = RollingWindow(windowSec = 120)
 
@@ -62,13 +81,32 @@ class Repo(ctx: Context) {
                 val rows = window.clusters().map { cl ->
                     val last = cl.members.maxBy { it.timestampNanos }
                     val d = DistanceEstimator.metersFromRssi(last.rssi, last.txPower)
+                    val now = System.nanoTime()
                     val age = ((now - last.timestampNanos) / 1_000_000_000L).toInt().coerceAtLeast(0)
+
+                    val vendorName =
+                        last.resolvedManufacturerName
+                            ?: last.manufacturer.keys.firstOrNull()?.let { sig.companyNameOrNull(it) }
+                            ?: last.manufacturer.keys.firstOrNull()?.let { hexId(it) }
+
+                    val serviceNames =
+                        if (last.resolvedServiceNames.isNotEmpty()) last.resolvedServiceNames
+                        else if (last.serviceUuids.isNotEmpty()) last.serviceUuids.map { toShortUuid(it) }.distinct()
+                        else emptyList()
+
+                    val titleResolved = last.advertisedName?.takeIf { !it.isNullOrBlank() }
+                        ?: vendorName
+                        ?: "Unknown"
+
                     DeviceRow(
-                        title = last.advertisedName ?: "Unknown",
+                        title = titleResolved,
                         mac = last.address,
                         rssi = last.rssi,
                         estMeters = d,
-                        lastSeenSec = age
+                        lastSeenSec = age,
+                        vendorName = vendorName,
+                        serviceNames = serviceNames,
+                        mfgPayloadHex = last.resolvedManufacturerPayloadHex
                     )
                 }.sortedBy { it.estMeters }
                 _rows.value = rows

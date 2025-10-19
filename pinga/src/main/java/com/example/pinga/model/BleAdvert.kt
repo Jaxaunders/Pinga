@@ -20,5 +20,7 @@ data class BleAdvert(
     /** Manufacturer payload after stripping duplicated 2-byte ID, as HEX (null if none) */
     val resolvedManufacturerPayloadHex: String? = null,
     /** Known service names derived from service UUIDs (e.g., ["Tile","Google Fast Pair"]) */
-    val resolvedServiceNames: List<String> = emptyList()
+    val resolvedServiceNames: List<String> = emptyList(),
+    val resolvedVendorLabel: String? = null,   // e.g., "Apple, Inc." or "Continental Automotive Systems"
+    val resolvedVendorSource: String? = null   // "Manufacturer (BLE)" or "Vendor (MAC OUI)"
 )

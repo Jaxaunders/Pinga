@@ -1,11 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal" android:padding="12dp"
-    android:layout_width="match_parent" android:layout_height="wrap_content">
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
 
-    <TextView android:id="@+id/tName"  android:layout_weight="3" android:layout_width="0dp" android:layout_height="wrap_content"/>
-    <TextView android:id="@+id/tMac"   android:layout_weight="3" android:layout_width="0dp" android:layout_height="wrap_content"/>
-    <TextView android:id="@+id/tRssi"  android:layout_weight="1" android:gravity="end" android:layout_width="0dp" android:layout_height="wrap_content"/>
-    <TextView android:id="@+id/tDist"  android:layout_weight="1" android:gravity="end" android:layout_width="0dp" android:layout_height="wrap_content"/>
-    <TextView android:id="@+id/tSeen"  android:layout_weight="1" android:gravity="end" android:layout_width="0dp" android:layout_height="wrap_content"/>
+    <!-- Device name -->
+    <TextView
+        android:id="@+id/tName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+    <!-- Manufacturer -->
+    <TextView
+        android:id="@+id/tBadges"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textColor="?android:attr/textColorSecondary" />
+
+    <!-- MAC address and distance -->
+    <TextView
+        android:id="@+id/tMeta"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="13sp"
+        android:textColor="?android:attr/textColorSecondary" />
+
+    <!-- Services box (optional, only filled when services exist) -->
+    <TextView
+        android:id="@+id/tServices"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:background="#11000000"
+        android:textSize="13sp"
+        android:textColor="?android:attr/textColorSecondary"
+        android:visibility="gone" />
 </LinearLayout>
+
+

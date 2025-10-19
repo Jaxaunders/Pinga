@@ -11,6 +11,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/pinga" />
+            <option value="$PROJECT_DIR$/sigtool" />
           </set>
         </option>
       </GradleProjectSettings>

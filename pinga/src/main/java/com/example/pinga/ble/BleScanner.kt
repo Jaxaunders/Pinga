@@ -43,26 +43,54 @@ class BleScanner(private val context: Context) {
         val cb = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, r: ScanResult) {
                 val sr = r.scanRecord
-                val sig = SigRegistry.get(context)      //SIG lookup
+                val sig = SigRegistry.get(context) // SIG lookup
 
-               // Manufacturer: resolve name + clean payload (handles duplicated LE ID bytes)
+                // 1) Manufacturer: resolve name + clean payload (handles duplicated LE ID bytes)
                 val mfgInfo = ManufacturerParser.parseFirst(sr?.manufacturerSpecificData) { id ->
-                    sig.companyNameOrNull(id)
+                    sig.companyNameOrNull(id) // returns null if unknown
                 }
-                // Services: resolve any known 16-bit/base UUID services to friendly names
+
+                // 2) Services: resolve any known 16-bit/base UUID services to friendly names
                 val serviceUuids = sr?.serviceUuids?.mapNotNull { it.uuid } ?: emptyList()
                 val serviceNames = serviceUuids.mapNotNull { sig.serviceNameOrNull(it) }.distinct()
 
+                // 3) Build raw manufacturer map (id -> bytes) for downstream/debug
                 val manu = buildMap {
                     val msd = sr?.manufacturerSpecificData
                     if (msd != null && msd.size() > 0) {
                         for (i in 0 until msd.size()) {
-                            val id = msd.keyAt(i)
+                            val id = msd.keyAt(i)           // Int 0..65535 (already little-endian parsed by Android)
                             val bytes = msd.valueAt(i)
                             if (bytes != null) put(id, bytes)
                         }
                     }
                 }
+
+                // 4) Decide the user-facing vendor label and its source
+                // Prefer Manufacturer Specific Data (SIG) if present, else fall back to MAC OUI
+                var vendorLabel: String? = null
+                var vendorSource: String? = null
+
+                if (mfgInfo?.companyName != null) {
+                    vendorLabel = mfgInfo.companyName
+                    vendorSource = "Manufacturer (BLE)"
+                    Log.d("BLE/LABEL", "MSD path: id=${mfgInfo.companyId} name=$vendorLabel addr=${r.device?.address}")
+                } else {
+                    // ---- OUI fallback (implement OuiLookup.vendorFor if you haven't already) ----
+                    val ouiVendor = try {
+                        OuiLookup.vendorFor(r.device?.address ?: "")
+                    } catch (t: Throwable) {
+                        null
+                    }
+                    if (!ouiVendor.isNullOrBlank()) {
+                        vendorLabel = ouiVendor
+                        vendorSource = "Vendor (MAC OUI)"
+                        Log.d("BLE/LABEL", "OUI path: vendor=$vendorLabel addr=${r.device?.address}")
+                    } else {
+                        Log.d("BLE/LABEL", "Unknown path: no MSD, no OUI addr=${r.device?.address}")
+                    }
+                }
+
                 trySend(
                     BleAdvert(
                         address = r.device?.address ?: "",
@@ -77,9 +105,12 @@ class BleScanner(private val context: Context) {
                         rawBytes = sr?.bytes,
                         advertisedName = sr?.deviceName ?: r.device?.name,
                         resolvedManufacturerId = mfgInfo?.companyId,
-                        resolvedManufacturerName = mfgInfo?.companyName,
+                        resolvedManufacturerName = mfgInfo?.companyName,          // still set for backward compat
                         resolvedManufacturerPayloadHex = mfgInfo?.payloadHex,
-                        resolvedServiceNames = serviceNames
+                        resolvedServiceNames = serviceNames,
+                        // NEW (optional) fields for the UI:
+                        resolvedVendorLabel = vendorLabel,
+                        resolvedVendorSource = vendorSource
                     )
                 )
             }

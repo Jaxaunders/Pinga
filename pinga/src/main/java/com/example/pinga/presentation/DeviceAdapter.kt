@@ -15,21 +15,40 @@ class DeviceAdapter : ListAdapter<DeviceRow, DeviceAdapter.Holder>(DIFF) {
         override fun areItemsTheSame(a: DeviceRow, b: DeviceRow) = a.mac == b.mac
         override fun areContentsTheSame(a: DeviceRow, b: DeviceRow) = a == b
     }
+
     class Holder(v: View) : RecyclerView.ViewHolder(v) {
         private val tName = v.findViewById<TextView>(R.id.tName)
-        private val tMac  = v.findViewById<TextView>(R.id.tMac)
-        private val tRssi = v.findViewById<TextView>(R.id.tRssi)
-        private val tDist = v.findViewById<TextView>(R.id.tDist)
-        private val tSeen = v.findViewById<TextView>(R.id.tSeen)
+        private val tBadges = v.findViewById<TextView>(R.id.tBadges)
+        private val tMeta = v.findViewById<TextView>(R.id.tMeta)
+        private val tServices = v.findViewById<TextView>(R.id.tServices)
+
         fun bind(row: DeviceRow) {
+            // Device name
             tName.text = row.title
-            tMac.text  = row.mac
-            tRssi.text = row.rssi.toString()
-            tDist.text = String.format("%.1f", row.estMeters)
-            tSeen.text = row.lastSeenSec.toString()
+
+            // Manufacturer / vendor
+            tBadges.text = row.vendorName ?: ""
+
+            // MAC address + approximate distance
+            val distanceText = if (row.estMeters >= 0) "Approx. %.1f m".format(row.estMeters) else "Distance unavailable"
+            tMeta.text = "${row.mac}  •  $distanceText"
+
+            // Services (only shown if available)
+            if (row.serviceNames.isNotEmpty()) {
+                tServices.visibility = View.VISIBLE
+                tServices.text = "Services: ${row.serviceNames.joinToString(", ")}"
+            } else {
+                tServices.visibility = View.GONE
+            }
         }
     }
-    override fun onCreateViewHolder(p: ViewGroup, vt: Int) =
-        Holder(LayoutInflater.from(p.context).inflate(R.layout.row_device, p, false))
-    override fun onBindViewHolder(h: Holder, pos: Int) = h.bind(getItem(pos))
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.row_device, parent, false)
+        return Holder(view)
+    }
+
+    override fun onBindViewHolder(holder: Holder, position: Int) =
+        holder.bind(getItem(position))
 }
