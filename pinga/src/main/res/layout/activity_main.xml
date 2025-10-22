@@ -2,20 +2,47 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#F7F9FC"
+    android:padding="8dp">
 
+    <!-- Title Bar -->
+    <TextView
+        android:id="@+id/titlePinga"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#1E293B"
+        android:text="Pinga - Nearby Devices"
+        android:textColor="#FFFFFF"
+        android:textSize="22sp"
+        android:gravity="center"
+        android:padding="16dp"
+        android:textStyle="bold"
+        android:elevation="4dp" />
+
+    <!-- Control Buttons -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="12dp"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="#FFFFFF"
+        android:elevation="2dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="4dp"
+        android:divider="?android:attr/dividerHorizontal"
+        android:showDividers="middle">
 
         <Button
             android:id="@+id/btnStart"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Start" />
+            android:text="Start"
+            android:textAllCaps="false"
+            android:backgroundTint="#3B82F6"
+            android:textColor="#FFFFFF" />
 
         <Button
             android:id="@+id/btnStop"
@@ -23,24 +50,34 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:enabled="false"
-            android:text="Stop" />
+            android:text="Stop"
+            android:textAllCaps="false"
+            android:backgroundTint="#EF4444"
+            android:textColor="#FFFFFF" />
 
         <Button
             android:id="@+id/btnExport"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Export" />
+            android:text="Export"
+            android:textAllCaps="false"
+            android:backgroundTint="#10B981"
+            android:textColor="#FFFFFF" />
     </LinearLayout>
 
+    <!-- Divider -->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#22000000" />
+        android:background="#E2E8F0" />
 
+    <!-- Device List -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:padding="4dp"
+        android:background="#FFFFFF" />
 </LinearLayout>
